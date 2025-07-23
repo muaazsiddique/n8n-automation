@@ -1,0 +1,373 @@
+{
+  "name": "Customer Support",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2d719bb7-4468-4e29-b6e8-a4ac893583ee",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "odNnoBVRY9ChXX21",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "customer support",
+              "description": "Customer Support Identifies general customer service inquiries, product help requests, account questions, and basic troubleshooting needs. Examples: \"Help with login\", \"Product not working\", \"How to cancel subscription\", \"Need assistance with setup\"  Technical Support Captures technical issues, bugs, system errors, and advanced troubleshooting requiring technical expertise. Examples: \"API error 404\", \"System crashes\", \"Integration problems\", \"Performance issues\"  Sales & Marketing Identifies sales inquiries, pricing requests, demo requests, and business development communications. Examples: \"Pricing information\", \"Schedule demo\", \"Partnership inquiry\", \"Product quotation\"  Billing & Payments Focuses on financial transactions, billing questions, payment issues, and subscription management. Examples: \"Invoice questions\", \"Payment failed\", \"Refund request\", \"Update payment method\"  Feedback & Reviews Captures customer opinions, product reviews, suggestions, and general feedback. Examples: \"Love the new feature\", \"App needs improvement\", \"Great customer service\", \"Feature request\"  Urgent/Priority Identifies time-sensitive issues requiring immediate attention and escalation. Examples: \"System down\", \"Security breach\", \"Critical bug\", \"Emergency support needed\"  General Inquiry Catches miscellaneous questions and information requests that don't fit other categories. Examples: \"Business hours?\", \"Company information\", \"Office location\", \"General questions\"  Spam/Irrelevant Filters unwanted communications, promotional content, and irrelevant messages. Examples: \"You won a prize!\", \"Amazing deals\", \"Click here now\", \"Test message\""
+            },
+            {
+              "category": "other ",
+              "description": "emails other than customer support"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "79dc4715-7af4-47d4-bbbb-785052767cb2",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        180
+      ],
+      "id": "622b8783-4460-401d-b120-4c17eafcec7e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BRBT2voeUpeDaZAo",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        480,
+        120
+      ],
+      "id": "c32814e0-114f-472b-8bef-1cf3533bc81b",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        220
+      ],
+      "id": "9f6ff1ac-36de-4e05-8dfb-068801a19bb1",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "BRBT2voeUpeDaZAo",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        860,
+        360
+      ],
+      "id": "07919ef9-60e8-4a30-a4ad-2751db40b156",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "aiHbseww35OSPT1j",
+          "name": "rag demo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant and will answer from knowledgebase"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        680,
+        -20
+      ],
+      "id": "f5b58227-78cf-43c4-9c1b-d1aa1c9d53ed",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Call this tool to access Policy and FAQ",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "rag-1536",
+          "mode": "list",
+          "cachedResultName": "rag-1536"
+        },
+        "options": {
+          "pineconeNamespace": "FAQ"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        860,
+        200
+      ],
+      "id": "4bc85fef-ad6e-444d-8566-e2fb97ece7ae",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "cqK71C7O4Jjy8DXf",
+          "name": "PineconeApi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -20
+      ],
+      "id": "3d6eac9e-b13b-4db3-a5b3-dc5dd9e4c7e9",
+      "name": "Reply to a message",
+      "webhookId": "225d876b-7135-4339-ae7a-78827fbe95c6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "odNnoBVRY9ChXX21",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "198226dc98b7fed6",
+          "threadId": "198226dc98b7fed6",
+          "labelIds": [
+            "UNREAD",
+            "IMPORTANT",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 8542,
+          "headers": {
+            "delivered-to": "Delivered-To: muaazsiddique97@gmail.com",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id 2adb3069b0e04-55a3194ca6bsor755080e87.0.2025.07.19.04.24.36\r\n        for <muaazsiddique97@gmail.com>\r\n        (Google Transport Security);\r\n        Sat, 19 Jul 2025 04:24:36 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a05:6512:3e26:b0:553:accf:d75 with SMTP id\r\n 2adb3069b0e04-55a3188f059mr1506557e87.26.1752924275639; Sat, 19 Jul 2025\r\n 04:24:35 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1752924276; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=JI1CJLT+N/p1Nf8t29KwtR4taVFStN/YfeKGwmlBkqUMwi2U7o8O4NldmSuz1NpxVF\r\n         gCBSAjs0D0XbnJokzKTrs0uMVVq0Xq4OxixAj5GcDFXAgW8T5t5iup+lk+LnNvLbuaou\r\n         sUqdwRUcnu88p4wctCHsSVtH3WE7/lK+H2nmx7oFfGs/emKi7H1oosIRMNK1t4N7zZDB\r\n         PGCz3z/vzQwJ7uAgPtC1gzFDr7ox9/1hT10TqDMP+FkNh520vHLP6+pF9awkNZOMuND1\r\n         YHxPxMfF/NGimnJGpeA1h15nNb1W/C/chS4s/wf/ldDqS4cMDSoFspYrKzQ8/N+WZ7sk\r\n         SrQA==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=y03wn845W8SVxEy/Ibv5dOvU5uvL3NkUFFVunl/VnGU=;\r\n        fh=4M2WCxgGJieEDQ/YYczzC/rnycV8GcoY7IDd4vSWtlw=;\r\n        b=lyB3SgGev7qQdYN0x7iHGNgH++4ue7P87Y7I6KEFSxkay93Tk2rwwIQNF3lJMx0YWe\r\n         mCCwKRK1KtOMH6WfLpP5S+GruX+AUijFV/WOVBiS7tF0VBDFQr28wTWId1tJGhhw2mxG\r\n         +U/D3YW+TYXffxNtSom1o94skykjDU5atcmNaDSArTx4OZ+UISYzmYbfwZLCRw9KKrzW\r\n         jzTPs3OoEvzcFxMIQQc8QXTERq0WPARZ2krCTdRrK2h9a63PoiPW9d89ASbcOfq13Zi2\r\n         hVWU64EcITyFGVVuwo3l+6/xRPV/JpPy9kwdFeXzO+FF7DT5wfzYhpmlBqAg87r09BQb\r\n         gOxw==;\r\n        dara=google.com",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=PAp421IZ;\r\n       spf=pass (google.com: domain of muaazuu@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=muaazuu@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "return-path": "Return-Path: <muaazuu@gmail.com>",
+            "received-spf": "Received-SPF: pass (google.com: domain of muaazuu@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=PAp421IZ;\r\n       spf=pass (google.com: domain of muaazuu@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=muaazuu@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=gmail.com; s=20230601; t=1752924276; x=1753529076; dara=google.com;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=y03wn845W8SVxEy/Ibv5dOvU5uvL3NkUFFVunl/VnGU=;\r\n        b=PAp421IZKUjIIlsu6Z2yOB3XZBMLLKiZodZtfqdGkByZjuDJpEEZRwveajv3T0izNe\r\n         ETWUK/GqW5HgcT5wFEfmmBRTO5xandZAYvY7XMmEaWh+I+19XS3ZJ9BVEMipzqTnuXk0\r\n         7BYCEqgJRIXAFoqN5OPdmbQ7O9AOXwLQGgHaDmXEBfEsLUnw9eRwG+DVpVlNMv7RWj7H\r\n         wcGSGEL3fqG6D9fPF1wp4Ke+5i6jR7A/4UltkyoJ/6AyfR6icDN3leKFlxr4BO3mFLl8\r\n         iXDGntID96gQaqqRp/aaJ80Aqsh3GzF30KnZHcV4HzcJTUt6K3IPia06YDGnfMxEfGQ9\r\n         jJ2g==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20230601; t=1752924276; x=1753529076;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-message-state\r\n         :from:to:cc:subject:date:message-id:reply-to;\r\n        bh=y03wn845W8SVxEy/Ibv5dOvU5uvL3NkUFFVunl/VnGU=;\r\n        b=UqrHUXju3ILp0Dawy5x7bXa1VJ0H2mZXfPy8kcANzM/Ua80/SGJX8pnx7DzObrHkI1\r\n         Bri4vXFISxtd5psYnSR+kvIS+Pqxt4E9lroRQ/IVJV+o1GiAwR6aP3QrR8B0oUqDMxd7\r\n         NKMua23/T0jw5httf6mhfjBSfqAqsf0ciJcAaf0hPElz2IvElv5utI2jHh74gB5nXxb8\r\n         uOW4PVrsb/mtdmiT0mG91xqiJVVeIOq+1Mq1LYGv7vpThqsBWMO5eg7gXT8wq79bI6J5\r\n         +2Az3s9GnzWkNlBpLLT88kcwKHX/hW+Pr93qWQeehmVdo3MR/gfqsNVg6+g3YA9vmSD1\r\n         iebg==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0Yzvjdvglks6R4VOD9K7UgqPRl6oWhtXwVWTrZstGTWJ1enOyUZx\r\n\tkKkMPAqINIAGtuu59HT7K4Y1uq0znV8oAdbcaKFbKW6/uLydgemFZ4TYQw3odwZeQc8w08HPg7D\r\n\tvPjlDF7eIYoBiYfHYPt7pR18DcTXegGuiPFC/",
+            "x-gm-gg": "X-Gm-Gg: ASbGncufmEGUzlu/oPnpYFwNTKQDNnyLuRRrup/TiByEgGU7chGdy5C2DEKoqbJCWYH\r\n\tZsLR0pSttjAAf5F4wkDmEY6qNfHwknR0FNgP7NjRAnEiJpmZ2XrHjbnVdpWyP2CSmfkOVKqj8tC\r\n\tp1Zo6XxF+6gbf+X2ESPtIkaf/iWB8FXPQwzGAVFkCkafq/oJu1+0URNa1Vzz5f8cmti/LdhmX23\r\n\tKvcDek=",
+            "x-google-smtp-source": "X-Google-Smtp-Source: AGHT+IHaE3faVChidzDglxO1EuTPAuHrzc1hRuhWUnRq6+KtpWtVIIGr/reW1Kt1dtD1K8guIXYh10U13/N7PCxweUA=",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: Muaaz Siddique <muaazuu@gmail.com>",
+            "date": "Date: Sat, 19 Jul 2025 16:24:59 +0500",
+            "x-gm-features": "X-Gm-Features: Ac12FXycqtCeOMIdKYfjIf0qmeiaL4uC19ZmldVelDDf-kTEXdE06-JHb_jT-zs",
+            "message-id": "Message-ID: <CAD05MTqihT5bJiD-Qjfpvv0Ly9b5jE8B+fSdT9jUuCuCEDLaiA@mail.gmail.com>",
+            "subject": "Subject: Unable to Access My Account - Need Urgent Help",
+            "to": "To: \"muaazsiddique97@gmail.com\" <muaazsiddique97@gmail.com>",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"000000000000c48d6a063a467c98\""
+          },
+          "html": "<div dir=\"ltr\"><div><div class=\"gmail-grid-cols-1 gmail-grid gmail-gap-2.5 gmail-[&amp;_&gt;_*]:min-w-0 gmail-!gap-3.5\"><p class=\"gmail-whitespace-normal gmail-break-words\"></p>\n<p class=\"gmail-whitespace-normal gmail-break-words\">Hi Support Team,</p>\n<p class=\"gmail-whitespace-normal gmail-break-words\">I hope this email finds you well. I&#39;m writing because I&#39;m having trouble accessing my account and it&#39;s becoming quite frustrating.</p>\n<p class=\"gmail-whitespace-normal gmail-break-words\">Since yesterday morning, I&#39;ve been unable to log into my dashboard. Every time I enter my username and password, I get an error message saying &quot;Invalid credentials&quot; even though I&#39;m 100% sure I&#39;m using the correct login details. I&#39;ve tried resetting my password twice, but I never receive the reset email in my inbox or spam folder.</p>\n<p class=\"gmail-whitespace-normal gmail-break-words\">This is really urgent for me because I have an important client presentation tomorrow and I need to access the reports from my account. I&#39;ve been a customer for over 2 years and never had issues like this before.</p>\n<p class=\"gmail-whitespace-normal gmail-break-words\">Could someone please help me resolve this as soon as possible? I&#39;m available by phone at 555-123-4567 if that would be faster.</p>\n<p class=\"gmail-whitespace-normal gmail-break-words\"><br></p><ul class=\"gmail-[&amp;:not(:last-child)_ul]:pb-1 gmail-[&amp;:not(:last-child)_ol]:pb-1 gmail-list-disc gmail-space-y-1.5 gmail-pl-7\">\n</ul>\n<p class=\"gmail-whitespace-normal gmail-break-words\">Thank you for your time and I look forward to hearing from you soon.</p>\n<p class=\"gmail-whitespace-pre-wrap gmail-break-words\">Best regards,\nSarah Johnson\nMarketing Manager\nABC Marketing Solutions</p></div></div><div class=\"gmail-h-8\"></div></div>\n",
+          "text": "Hi Support Team,\n\nI hope this email finds you well. I'm writing because I'm having trouble\naccessing my account and it's becoming quite frustrating.\n\nSince yesterday morning, I've been unable to log into my dashboard. Every\ntime I enter my username and password, I get an error message saying\n\"Invalid credentials\" even though I'm 100% sure I'm using the correct login\ndetails. I've tried resetting my password twice, but I never receive the\nreset email in my inbox or spam folder.\n\nThis is really urgent for me because I have an important client\npresentation tomorrow and I need to access the reports from my account.\nI've been a customer for over 2 years and never had issues like this before.\n\nCould someone please help me resolve this as soon as possible? I'm\navailable by phone at 555-123-4567 if that would be faster.\n\n\n\n\nThank you for your time and I look forward to hearing from you soon.\n\nBest regards, Sarah Johnson Marketing Manager ABC Marketing Solutions\n",
+          "textAsHtml": "<p>Hi Support Team,</p><p>I hope this email finds you well. I&apos;m writing because I&apos;m having trouble<br/>accessing my account and it&apos;s becoming quite frustrating.</p><p>Since yesterday morning, I&apos;ve been unable to log into my dashboard. Every<br/>time I enter my username and password, I get an error message saying<br/>&quot;Invalid credentials&quot; even though I&apos;m 100% sure I&apos;m using the correct login<br/>details. I&apos;ve tried resetting my password twice, but I never receive the<br/>reset email in my inbox or spam folder.</p><p>This is really urgent for me because I have an important client<br/>presentation tomorrow and I need to access the reports from my account.<br/>I&apos;ve been a customer for over 2 years and never had issues like this before.</p><p>Could someone please help me resolve this as soon as possible? I&apos;m<br/>available by phone at 555-123-4567 if that would be faster.</p><p>Thank you for your time and I look forward to hearing from you soon.</p><p>Best regards, Sarah Johnson Marketing Manager ABC Marketing Solutions</p>",
+          "subject": "Unable to Access My Account - Need Urgent Help",
+          "date": "2025-07-19T11:24:59.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "muaazsiddique97@gmail.com",
+                "name": ""
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><a href=\"mailto:muaazsiddique97@gmail.com\" class=\"mp_address_email\">muaazsiddique97@gmail.com</a></span>",
+            "text": "muaazsiddique97@gmail.com"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "muaazuu@gmail.com",
+                "name": "Muaaz Siddique"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Muaaz Siddique</span> &lt;<a href=\"mailto:muaazuu@gmail.com\" class=\"mp_address_email\">muaazuu@gmail.com</a>&gt;</span>",
+            "text": "\"Muaaz Siddique\" <muaazuu@gmail.com>"
+          },
+          "messageId": "<CAD05MTqihT5bJiD-Qjfpvv0Ly9b5jE8B+fSdT9jUuCuCEDLaiA@mail.gmail.com>"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c3e5a821-7fec-4ba2-a71c-f7efe1909fb0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2bdc7be52d3f15e2a9a22a025a5017cc947f693a6b2c145cdcab7e869bdf5250"
+  },
+  "id": "YZya5OCRIxO0vBIt",
+  "tags": []
+}
