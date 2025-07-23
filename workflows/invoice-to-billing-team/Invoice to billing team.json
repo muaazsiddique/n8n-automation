@@ -1,0 +1,415 @@
+{
+  "name": "Invoice to billing team",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1_iBbGFtDRHqKRtANEm4jAZ2rCz86AhK9",
+          "mode": "list",
+          "cachedResultName": "Project",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1_iBbGFtDRHqKRtANEm4jAZ2rCz86AhK9"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9a311855-8222-468e-8153-00dce199bc41",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8tnkdV0emjD2OAvH",
+          "name": "muaazsiddique97@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e81ffbab-8395-4d8e-bb2d-27c1e2c4d89d",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8tnkdV0emjD2OAvH",
+          "name": "muaazsiddique97@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "22d5c73d-229e-4ebb-82b3-1bc558ae8291",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "Invoice Number",
+              "type": "number",
+              "description": "Invoice number written",
+              "required": true
+            },
+            {
+              "name": "Date",
+              "type": "number",
+              "description": "Date mentioned there",
+              "required": true
+            },
+            {
+              "name": "Total Amount",
+              "type": "number",
+              "description": "Total amount at the end",
+              "required": true
+            },
+            {
+              "name": "Vendor/Store Name",
+              "description": "Name of the vendor and store"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "6f0d7052-54bd-488a-a57d-911c9051add4",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        220
+      ],
+      "id": "a1538690-622a-471b-abe4-afa1fb474572",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BRBT2voeUpeDaZAo",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Invoice number:  {{ $json.output['Invoice Number'] }}\nDate: {{ $json.output.Date }}\nTotal Amount: {{ $json.output['Total Amount'] }}\nVendor Name: {{ $json.output['Vendor/Store Name'] }}"
+            },
+            {
+              "content": "=you are an assistant who will create an email that will be dispatched to our billing team \ninform the billing team that we have updated this in our databbase and they can view it here as well\nhttps://docs.google.com/spreadsheets/d/1VT8VaZqpCZAgfii1t_wArnAoURLNUTOlpxfcaWf0LUo/edit?gid=0#gid=0\noutput\nsubject\nemail\n",
+              "role": "system"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1020,
+        0
+      ],
+      "id": "209e934e-f141-4fc4-9573-053ade0affc3",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BRBT2voeUpeDaZAo",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "muaazuu@gmail.com",
+        "subject": "={{ $json.message.content.subject }}",
+        "message": "={{ $json.message.content.email }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1380,
+        0
+      ],
+      "id": "80355e5c-c667-44ca-b1a5-4ea18d7c67c4",
+      "name": "Send a message",
+      "webhookId": "a5b05880-c2eb-4828-95b5-90c5621ca533",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "odNnoBVRY9ChXX21",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Google Drive Trigger": [
+      {
+        "json": {
+          "parents": [
+            "1_iBbGFtDRHqKRtANEm4jAZ2rCz86AhK9"
+          ],
+          "lastModifyingUser": {
+            "displayName": "Muaaz Siddique",
+            "kind": "drive#user",
+            "me": true,
+            "permissionId": "01204162022328497946",
+            "emailAddress": "muaazsiddique97@gmail.com",
+            "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocIWfXFcMKYYsox8PDVfOYN8baLKUxQ2DE9pTdFHEyG44bJdlQ=s64"
+          },
+          "owners": [
+            {
+              "displayName": "Muaaz Siddique",
+              "kind": "drive#user",
+              "me": true,
+              "permissionId": "01204162022328497946",
+              "emailAddress": "muaazsiddique97@gmail.com",
+              "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocIWfXFcMKYYsox8PDVfOYN8baLKUxQ2DE9pTdFHEyG44bJdlQ=s64"
+            }
+          ],
+          "permissions": [
+            {
+              "kind": "drive#permission",
+              "id": "01204162022328497946",
+              "type": "user",
+              "emailAddress": "muaazsiddique97@gmail.com",
+              "role": "owner",
+              "displayName": "Muaaz Siddique",
+              "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocIWfXFcMKYYsox8PDVfOYN8baLKUxQ2DE9pTdFHEyG44bJdlQ=s64",
+              "deleted": false,
+              "pendingOwner": false
+            }
+          ],
+          "spaces": [
+            "drive"
+          ],
+          "capabilities": {
+            "canAcceptOwnership": false,
+            "canAddChildren": false,
+            "canAddMyDriveParent": false,
+            "canChangeCopyRequiresWriterPermission": true,
+            "canChangeItemDownloadRestriction": true,
+            "canChangeSecurityUpdateEnabled": false,
+            "canChangeViewersCanCopyContent": true,
+            "canComment": true,
+            "canCopy": true,
+            "canDelete": true,
+            "canDisableInheritedPermissions": false,
+            "canDownload": true,
+            "canEdit": true,
+            "canEnableInheritedPermissions": true,
+            "canListChildren": false,
+            "canModifyContent": true,
+            "canModifyContentRestriction": true,
+            "canModifyEditorContentRestriction": true,
+            "canModifyOwnerContentRestriction": true,
+            "canModifyLabels": false,
+            "canMoveChildrenWithinDrive": false,
+            "canMoveItemIntoTeamDrive": true,
+            "canMoveItemOutOfDrive": true,
+            "canMoveItemWithinDrive": true,
+            "canReadLabels": false,
+            "canReadRevisions": true,
+            "canRemoveChildren": false,
+            "canRemoveContentRestriction": false,
+            "canRemoveMyDriveParent": true,
+            "canRename": true,
+            "canShare": true,
+            "canTrash": true,
+            "canUntrash": true
+          },
+          "permissionIds": [
+            "01204162022328497946"
+          ],
+          "linkShareMetadata": {
+            "securityUpdateEligible": false,
+            "securityUpdateEnabled": true
+          },
+          "downloadRestrictions": {
+            "itemDownloadRestriction": {
+              "restrictedForReaders": false,
+              "restrictedForWriters": false
+            },
+            "effectiveDownloadRestrictionWithContext": {
+              "restrictedForReaders": false,
+              "restrictedForWriters": false
+            }
+          },
+          "kind": "drive#file",
+          "id": "11sszZMCZu8tCllHvXbZR817FPgUMFuN2",
+          "name": "Invoices.pdf",
+          "mimeType": "application/pdf",
+          "starred": false,
+          "trashed": false,
+          "explicitlyTrashed": false,
+          "version": "4",
+          "webContentLink": "https://drive.google.com/uc?id=11sszZMCZu8tCllHvXbZR817FPgUMFuN2&export=download",
+          "webViewLink": "https://drive.google.com/file/d/11sszZMCZu8tCllHvXbZR817FPgUMFuN2/view?usp=drivesdk",
+          "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/pdf",
+          "hasThumbnail": true,
+          "thumbnailLink": "https://lh3.googleusercontent.com/drive-storage/AJQWtBOq0Vu_DWFhyfqKKDzDr_pp-kn4NTOlIx-uEIkdDn212pZ73cXkW8j2ijuKhFpP07od5AA2Zwn8D6s-cs-1f5s-4YaHj1NHH142p9gl04Va8VI=s220",
+          "thumbnailVersion": "2",
+          "viewedByMe": true,
+          "viewedByMeTime": "2025-07-20T19:21:36.886Z",
+          "createdTime": "2025-07-20T19:21:36.886Z",
+          "modifiedTime": "2025-07-20T19:21:50.894Z",
+          "modifiedByMeTime": "2025-07-20T19:21:50.894Z",
+          "modifiedByMe": true,
+          "shared": false,
+          "ownedByMe": true,
+          "viewersCanCopyContent": true,
+          "copyRequiresWriterPermission": false,
+          "writersCanShare": true,
+          "originalFilename": "SAMPLE INVOICES - FOR DEMONSTRATION PURPOSES ONLY.pdf",
+          "fullFileExtension": "pdf",
+          "fileExtension": "pdf",
+          "md5Checksum": "8c36999610fb2e144246f972c323d084",
+          "sha1Checksum": "4b249a08c61b093d7fd6c222d1d0d65cee78b95c",
+          "sha256Checksum": "1794c32e7b7abb5ad4efc90131cce3ebbabd5461221e4d88e54a57bbc2e8ac85",
+          "size": "106174",
+          "quotaBytesUsed": "106174",
+          "headRevisionId": "0B5VZxlJb2ohKR3lBQXpzczdCdlJUaUxxQ1lCU1NqUWRxVmd3PQ",
+          "isAppAuthorized": false,
+          "inheritedPermissionsDisabled": false
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "24c80523-729b-48dd-a372-7b727b6c99aa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2bdc7be52d3f15e2a9a22a025a5017cc947f693a6b2c145cdcab7e869bdf5250"
+  },
+  "id": "WppDrAzOeHVltbGG",
+  "tags": []
+}
