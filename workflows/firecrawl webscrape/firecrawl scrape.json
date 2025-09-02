@@ -1,0 +1,186 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        32
+      ],
+      "id": "4cc0a7a8-4781-4974-80ef-6dae9969c7c5",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v2/extract",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"urls\": [\"https://quotes.toscrape.com/page/*\"],\n  \"prompt\": \"Extract all quotes and their corresponding authors and tags from the website\",\n  \"schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"quotes\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"text\": {\n              \"type\": \"string\"\n            },\n            \"author\": {\n              \"type\": \"string\"\n            },\n            \"tags\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"required\": [\"text\", \"author\"]\n        }\n      }\n    },\n    \"required\": [\"quotes\"]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        32
+      ],
+      "id": "f5bc9f30-b266-48ac-9ddd-9ec180c964bf",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "btQzjYXxaRxu1FoL",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "==\"https://api.firecrawl.dev/v2/extract/\" + $json.id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        32
+      ],
+      "id": "1cea18ed-af66-4e21-8184-b48478bc144c",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "btQzjYXxaRxu1FoL",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "45328788-0a36-44c1-84ec-b67ee467ad02",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        32
+      ],
+      "id": "3822f7a2-f2bc-4406-a091-89548d6ae5cf",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        32
+      ],
+      "id": "662d9856-253d-4bb9-b9b0-2991d491ee3e",
+      "name": "Wait",
+      "webhookId": "5df839d9-3aee-4824-ab0a-ac87509d56f0"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"parameters\": {\n    \"mode\": \"keepOnlySet\",\n    \"options\": {},\n    \"fields\": {\n      \"values\": [\n        {\n          \"name\": \"quotes\",\n          \"type\": \"objectValue\", \n          \"objectValue\": \"={{ $json.data.quotes }}\"\n        },\n        {\n          \"name\": \"quote_count\",\n          \"type\": \"numberValue\",\n          \"numberValue\": \"={{ $json.data.quotes ? $json.data.quotes.length : 0 }}\"\n        },\n        {\n          \"name\": \"status\", \n          \"type\": \"stringValue\",\n          \"stringValue\": \"={{ $json.status }}\"\n        },\n        {\n          \"name\": \"source_url\",\n          \"type\": \"stringValue\", \n          \"stringValue\": \"quotes.toscrape.com\"\n        }\n      ]\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        -160
+      ],
+      "id": "e2a417dc-e52a-40ad-b704-5d4daeb98929",
+      "name": "Edit Fields"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "93a1cd3c32557fe8466869f983eefd2f33e580e38b36d638d6a3a727d316e0b6"
+  }
+}
